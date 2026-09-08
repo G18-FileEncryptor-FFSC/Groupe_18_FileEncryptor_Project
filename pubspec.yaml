@@ -1,0 +1,13 @@
+name: file_encryptor_workspace
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+workspace:
+  - packages/file_encryptor_core
+  - apps/cli
+  - apps/mobile
+
+dev_dependencies:
+  lints: ^5.0.0
