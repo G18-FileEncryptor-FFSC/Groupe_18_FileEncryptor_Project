@@ -1,4 +1,14 @@
-/// Cas d'utilisation : Récupérer l'historique des opérations.
+import '../entities/history_item.dart';
+import '../repositories/history_repository.dart';
+
+/// Cas d'utilisation : Récupérer l'historique complet des opérations.
 class GetHistoryUseCase {
-  // TODO: Implémenter la récupération de l'historique via HistoryRepository.
+  final HistoryRepository repository;
+
+  GetHistoryUseCase({required this.repository});
+
+  /// Retourne la liste des opérations d'historique.
+  Future<List<HistoryItem>> call() {
+    return repository.getHistory();
+  }
 }

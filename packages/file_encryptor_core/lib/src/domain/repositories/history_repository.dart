@@ -1,4 +1,13 @@
-/// Contrat d'interface pour la gestion de l'historique.
+import '../entities/history_item.dart';
+
+/// Contrat d'interface pour la persistance de l'historique.
 abstract class HistoryRepository {
-  // TODO: Définir les méthodes getHistory, saveHistoryItem, clearHistory.
+  /// Récupère la liste des opérations triée par date décroissante.
+  Future<List<HistoryItem>> getHistory();
+
+  /// Ajoute une entrée dans l'historique.
+  Future<void> saveHistoryItem(HistoryItem item);
+
+  /// Efface la totalité de l'historique.
+  Future<void> clearHistory();
 }
