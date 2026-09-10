@@ -1,4 +1,19 @@
-/// Cas d'utilisation : Enregistrer une opération dans l'historique.
+import '../entities/history_item.dart';
+import '../repositories/history_repository.dart';
+
+/// Cas d'utilisation : Sauvegarder ou nettoyer les entrées d'historique.
 class SaveHistoryUseCase {
-  // TODO: Implémenter l'enregistrement d'une opération via HistoryRepository.
+  final HistoryRepository repository;
+
+  SaveHistoryUseCase({required this.repository});
+
+  /// Ajoute une entrée dans l'historique.
+  Future<void> call(HistoryItem item) {
+    return repository.saveHistoryItem(item);
+  }
+
+  /// Réinitialise l'ensemble de l'historique.
+  Future<void> clear() {
+    return repository.clearHistory();
+  }
 }
