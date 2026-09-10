@@ -52,3 +52,7 @@ captures/
 
 # Old temporary folders
 file_encryptor/
+
+# App local history files
+*.file_encryptor_history.json
+.file_encryptor_history.json

@@ -13,6 +13,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
-          sdk: stable
-      - run: dart pub get
+          channel: 'stable'
+      - run: flutter pub get
       - run: cd packages/file_encryptor_core && dart test

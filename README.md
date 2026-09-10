@@ -63,3 +63,4 @@ Consultez le dossier [`docs/`](docs/) pour plus de détails :
 - [Cryptographie](docs/cryptography.md)
 - [Format de fichier .enc](docs/file_format.md)
 - [Guide de développement](docs/development.md)
+- [Guide d'intégration (CLI & Mobile)](docs/integration_guide.md)
