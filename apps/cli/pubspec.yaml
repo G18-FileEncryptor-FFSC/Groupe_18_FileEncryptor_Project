@@ -9,7 +9,9 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
+  file_encryptor_core: any
   path: ^1.9.0
+  args: ^2.5.0
 
 dev_dependencies:
   lints: ^6.0.0
