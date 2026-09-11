@@ -10,23 +10,31 @@ class CliApplication {
   final EncryptFileUseCase encryptUseCase;
   final DecryptFileUseCase decryptUseCase;
 
-  CliApplication({CliIo? io, HistoryRepository? historyRepository})
-      : io = io ?? const CliIo(),
-        historyRepository = historyRepository ?? HistoryRepositoryImpl(),
-        encryptUseCase = EncryptFileUseCase(
+  factory CliApplication({CliIo? io, HistoryRepository? historyRepository}) {
+    final history = historyRepository ?? HistoryRepositoryImpl();
+    return CliApplication._(
+      io: io ?? const CliIo(),
+      historyRepository: history,
+    );
+  }
+
+  CliApplication._({
+    required this.io,
+    required this.historyRepository,
+  })  : encryptUseCase = EncryptFileUseCase(
           cryptoRepository: CryptoRepositoryImpl(),
           fileRepository: FileRepositoryImpl(),
-          historyRepository: historyRepository ?? HistoryRepositoryImpl(),
+          historyRepository: historyRepository,
         ),
         decryptUseCase = DecryptFileUseCase(
           cryptoRepository: CryptoRepositoryImpl(),
           fileRepository: FileRepositoryImpl(),
-          historyRepository: historyRepository ?? HistoryRepositoryImpl(),
+          historyRepository: historyRepository,
         );
 
   Future<int> run(List<String> arguments) async {
     final parser = _buildParser();
-    ArgResults results;
+    late final ArgResults results;
     try {
       results = parser.parse(arguments);
     } on FormatException catch (e) {
@@ -64,12 +72,12 @@ class CliApplication {
 
     final encrypt = ArgParser()
       ..addOption('output', abbr: 'o', help: 'Chemin du fichier .enc de sortie.')
-      ..addOption('password', abbr: 'p', help: 'Mot de passe. Évitez cette option pour ne pas l’exposer dans l’historique du shell.')
+      ..addOption('password', abbr: 'p', help: 'Mot de passe (préférez la saisie interactive).')
       ..addFlag('help', abbr: 'h', negatable: false, help: 'Afficher l’aide du chiffrement.');
 
     final decrypt = ArgParser()
       ..addOption('output', abbr: 'o', help: 'Chemin du fichier ou dossier de sortie.')
-      ..addOption('password', abbr: 'p', help: 'Mot de passe. Évitez cette option pour ne pas l’exposer dans l’historique du shell.')
+      ..addOption('password', abbr: 'p', help: 'Mot de passe (préférez la saisie interactive).')
       ..addFlag('help', abbr: 'h', negatable: false, help: 'Afficher l’aide du déchiffrement.');
 
     final history = ArgParser()
@@ -212,10 +220,17 @@ class CliIo {
   void write(String message) => stdout.write(message);
   void writeln([String message = '']) => stdout.writeln(message);
   void error(String message) => stderr.writeln(message);
-  Future<String?> readLine() => stdin.readLine();
 
   String? readLineHidden() {
-    final line = stdin.readLineSync();
-    return line;
+    if (!stdin.hasTerminal) return stdin.readLineSync();
+
+    try {
+      Process.runSync('stty', ['-echo'], runInShell: true);
+      final line = stdin.readLineSync();
+      return line;
+    } finally {
+      Process.runSync('stty', ['echo'], runInShell: true);
+      stdout.writeln();
+    }
   }
 }
