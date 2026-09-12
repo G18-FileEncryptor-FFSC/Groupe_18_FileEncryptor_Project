@@ -16,7 +16,7 @@ void main() {
 
     test('copyWith updates fields correctly for loading and success', () {
       const state = EncryptionState();
-      
+
       final loadingState = state.copyWith(
         status: EncryptionStatus.loading,
         selectedFilePath: '/path/test.txt',
@@ -56,15 +56,14 @@ void main() {
         ),
       );
 
-      expect(find.text('Chiffrement de fichier'), findsOneWidget);
-      expect(find.text('Sélectionner un fichier'), findsOneWidget);
+      expect(find.text('Chiffrer un fichier'), findsOneWidget);
+      expect(find.text('Sélectionnez un fichier'), findsOneWidget);
       expect(find.text('Mot de passe de chiffrement'), findsOneWidget);
-      expect(find.text('Chiffrer le fichier'), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
       expect(find.byType(LinearProgressIndicator), findsNothing);
     });
 
-    testWidgets('Displays snackbar error when triggering encryption without a file',
+    testWidgets('Disables encryption button when no file is selected',
         (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -72,11 +71,21 @@ void main() {
         ),
       );
 
-      // Clic direct sur le bouton de chiffrement
-      await tester.tap(find.text('Chiffrer le fichier'));
-      await tester.pump();
+        final buttonFinder =
+          find.byWidgetPredicate((widget) => widget is ElevatedButton);
 
-      expect(find.text('Veuillez sélectionner un fichier'), findsOneWidget);
+      // Scroller dans le ListView jusqu'à faire apparaître le bouton
+      await tester.scrollUntilVisible(
+        buttonFinder,
+        150.0,
+        scrollable: find.byWidgetPredicate((widget) => widget is Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      expect(buttonFinder, findsOneWidget);
+
+      final button = tester.widget<ElevatedButton>(buttonFinder);
+      expect(button.onPressed, isNull);
     });
   });
 }
