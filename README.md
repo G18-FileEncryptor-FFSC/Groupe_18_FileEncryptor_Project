@@ -1,66 +1,85 @@
-# FileEncryptor — Groupe 18
+# FileEncryptor
 
-Monorepo pour l'application **FileEncryptor** (CLI Dart & Mobile Flutter) articulée autour d'un package métier commun en Clean Architecture (**FileEncryptor Core**).
+FileEncryptor est un outil de chiffrement et de déchiffrement de fichiers.
 
----
+Le projet a pour objectif de permettre à un utilisateur de sélectionner un fichier, de le chiffrer localement à l'aide d'un secret ou d'un mot de passe, puis de le déchiffrer ultérieurement avec le bon secret.
 
-## Structure du Monorepo
+## Fonctionnalités principales
 
+Le projet prévoit deux interfaces :
+
+* **Application mobile Flutter** : interface graphique simple, moderne et intuitive.
+* **CLI Dart** : interface en ligne de commande permettant d'effectuer les principales opérations de chiffrement et de déchiffrement.
+
+Le cœur fonctionnel est principalement développé en Dart pur afin de pouvoir être réutilisé par les différentes interfaces.
+
+## Architecture
+
+Le projet suit une architecture simple basée sur trois couches :
+
+```text
+Presentation
+     ↓
+Domain
+     ↓
+Data
 ```
-file_encryptor/
-├── .github/workflows/          # CI/CD (tests unitaires, builds)
+
+La logique de chiffrement et de gestion des fichiers est séparée de l'interface Flutter.
+
+Cette organisation permet notamment de préparer la réutilisation du cœur fonctionnel par la future CLI Dart.
+
+Pour plus de détails, consulter :
+
+`docs/architecture/architecture.md`
+
+## Structure du projet
+
+```text
+FileEncryptor/
 ├── apps/
-│   ├── cli/                    # Application Terminal en Dart pur
-│   └── mobile/                 # Application Mobile Flutter (Android / iOS)
+│   ├── mobile/
+│   └── cli/
+│
 ├── packages/
-│   └── file_encryptor_core/    # Cœur métier Clean Architecture (Domain / Data)
-├── docs/                       # Spécifications et documentation d'architecture
-├── .gitignore
-├── analysis_options.yaml
-├── pubspec.yaml                # Workspace racine
-└── README.md
+│   └── core/
+│
+├── docs/
+│   └── architecture/
+│
+├── README.md
+├── CONTRIBUTING.md
+└── SECURITY.md
 ```
 
----
+## État du projet
 
-## Démarrage Rapide
+Le projet est actuellement en cours de développement.
 
-### 1. Installation des dépendances
-À la racine du projet :
-```bash
-dart pub get
-```
-
-### 2. Lancer la CLI
-```bash
-cd apps/cli
-dart run bin/main.dart --help
-```
-
-### 3. Lancer l'Application Mobile
-```bash
-cd apps/mobile
-flutter run
-```
-
-### 4. Lancer les Tests
-```bash
-# Tests du core
-cd packages/file_encryptor_core && dart test
-
-# Tests de la CLI
-cd apps/cli && dart test
-
-# Tests de l'app mobile
-cd apps/mobile && flutter test
-```
-
----
+L'application mobile Flutter constitue la première interface développée. La CLI Dart sera intégrée progressivement après la mise en place du cœur fonctionnel.
 
 ## Documentation
-Consultez le dossier [`docs/`](docs/) pour plus de détails :
-- [Architecture](docs/architecture.md)
-- [Cryptographie](docs/cryptography.md)
-- [Format de fichier .enc](docs/file_format.md)
-- [Guide de développement](docs/development.md)
-- [Guide d'intégration (CLI & Mobile)](docs/integration_guide.md)
+
+La documentation du projet est disponible dans le dossier `docs/`.
+
+Elle couvre notamment :
+
+* l'architecture du projet ;
+* le fonctionnement du Core ;
+* l'application mobile ;
+* la future CLI ;
+* la sécurité ;
+* la contribution au projet ;
+* les exemples d'utilisation.
+
+## Contribution
+
+Les développeurs souhaitant contribuer au projet doivent consulter :
+
+`CONTRIBUTING.md`
+
+## Sécurité
+
+Pour les informations relatives à la sécurité du projet, consulter :
+
+`SECURITY.md`
