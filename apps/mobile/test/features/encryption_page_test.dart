@@ -47,44 +47,54 @@ void main() {
     });
   });
 
-  group('EncryptionScreen Widget Tests', () {
-    testWidgets('Displays all essential UI elements initially',
+  group('EncryptionScreen Widget Tests (Wizard Flow)', () {
+    testWidgets('Displays Step 1 (File Selection) elements initially',
         (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       await tester.pumpWidget(
         const MaterialApp(
           home: EncryptionScreen(),
         ),
-      );
-
-      expect(find.text('Chiffrer un fichier'), findsOneWidget);
-      expect(find.text('Sélectionnez un fichier'), findsOneWidget);
-      expect(find.text('Mot de passe de chiffrement'), findsOneWidget);
-      expect(find.byType(TextField), findsOneWidget);
-      expect(find.byType(LinearProgressIndicator), findsNothing);
-    });
-
-    testWidgets('Disables encryption button when no file is selected',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: EncryptionScreen(),
-        ),
-      );
-
-        final buttonFinder =
-          find.byWidgetPredicate((widget) => widget is ElevatedButton);
-
-      // Scroller dans le ListView jusqu'à faire apparaître le bouton
-      await tester.scrollUntilVisible(
-        buttonFinder,
-        150.0,
-        scrollable: find.byWidgetPredicate((widget) => widget is Scrollable).first,
       );
       await tester.pumpAndSettle();
 
-      expect(buttonFinder, findsOneWidget);
+      // Vérifie la présence des éléments de l'étape 1
+      expect(find.text('Choisir un fichier'), findsAtLeastNWidgets(1));
+      expect(find.textContaining('Zero upload cloud'), findsOneWidget);
+      expect(find.textContaining('Continuer'), findsOneWidget);
 
+      // Vérifie que les éléments de l'étape 2 sont absents
+      expect(find.text('Mot de passe'), findsNothing);
+      expect(find.byType(TextField), findsNothing);
+    });
+
+    testWidgets('Disables "Continuer" button when no file is selected',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: EncryptionScreen(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Trouve le bouton ElevatedButton englobant le texte 'Continuer'
+      final buttonFinder = find.ancestor(
+        of: find.textContaining('Continuer'),
+        matching: find.byWidgetPredicate((w) => w is ElevatedButton),
+      );
+
+      expect(buttonFinder, findsOneWidget);
       final button = tester.widget<ElevatedButton>(buttonFinder);
+      // Le bouton doit être grisé sans fichier sélectionné
       expect(button.onPressed, isNull);
     });
   });
