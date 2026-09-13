@@ -1,4 +1,20 @@
-/// Point d'entrée de la CLI FileEncryptor.
-void main(List<String> arguments) {
-  // TODO: Initialiser le CommandRunner et enregistrer les commandes encrypt et decrypt.
+import 'package:args/command_runner.dart';
+
+import '../lib/src/commands/encrypt_command.dart';
+
+Future<void> main(List<String> arguments) async {
+  final runner = CommandRunner<void>(
+    'file_encryptor',
+    'Outil de chiffrement et de déchiffrement de fichiers.',
+  )..addCommand(EncryptCommand());
+
+  try {
+    await runner.run(arguments);
+  } on UsageException catch (error) {
+    print(error.message);
+    print('');
+    print(error.usage);
+  } catch (error) {
+    print('Erreur : $error');
+  }
 }
