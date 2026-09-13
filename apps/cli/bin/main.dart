@@ -17,6 +17,7 @@ Future<void> main(List<String> arguments) async {
     await runner.run(arguments);
   } on UsageException catch (error) {
     stderr.writeln('Erreur : ${error.message}');
+    stderr.writeln();
     stderr.writeln(error.usage);
     exitCode = 1;
   } catch (error) {
