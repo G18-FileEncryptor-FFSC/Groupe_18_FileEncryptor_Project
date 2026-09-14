@@ -5,18 +5,17 @@ class CoreFactory {
   CoreFactory._();
 
   static EncryptFileUseCase encryptUseCase() => EncryptFileUseCase(
-        cryptoRepository: CryptoRepositoryImpl(),
-        fileRepository: FileRepositoryImpl(),
-        historyRepository: HistoryRepositoryImpl(),
-      );
+    cryptoRepository: CryptoRepositoryImpl(),
+    fileRepository: FileRepositoryImpl(),
+    historyRepository: HistoryRepositoryImpl(),
+  );
 
   static DecryptFileUseCase decryptUseCase() => DecryptFileUseCase(
-        cryptoRepository: CryptoRepositoryImpl(),
-        fileRepository: FileRepositoryImpl(),
-        historyRepository: HistoryRepositoryImpl(),
-      );
+    cryptoRepository: CryptoRepositoryImpl(),
+    fileRepository: FileRepositoryImpl(),
+    historyRepository: HistoryRepositoryImpl(),
+  );
 
-  static GetHistoryUseCase historyUseCase() => GetHistoryUseCase(
-        historyRepository: HistoryRepositoryImpl(),
-      );
+  static GetHistoryUseCase historyUseCase() =>
+      GetHistoryUseCase(repository: HistoryRepositoryImpl());
 }
