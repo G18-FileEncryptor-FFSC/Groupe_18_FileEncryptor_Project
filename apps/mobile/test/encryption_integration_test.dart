@@ -27,8 +27,6 @@ void main() {
     final header = String.fromCharCodes(bytes.sublist(0, 4));
     expect(header, 'FENC');
 
-    print('\n[SUCCÈS] Fichier chiffré généré : ${result.outputPath}');
-    print('[SUCCÈS] Taille : ${result.fileSizeBytes} octets, Durée : ${result.duration.inMilliseconds} ms\n');
 
     await tempDir.delete(recursive: true);
   });
