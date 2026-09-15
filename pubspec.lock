@@ -727,8 +727,4 @@ packages:
     version: "3.1.4"
 sdks:
   dart: ">=3.11.0 <4.0.0"
-<<<<<<< HEAD
   flutter: ">=3.38.4"
-=======
-  flutter: ">=3.32.0"
->>>>>>> feature/mobile-encryption-flow
