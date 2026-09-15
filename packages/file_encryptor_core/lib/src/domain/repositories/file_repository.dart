@@ -16,7 +16,11 @@ abstract class FileRepository {
   Future<void> writeFileBytes(String path, List<int> bytes);
 
   /// Écrit un fichier conteneur chiffré `.enc` selon la spécification binaire (Magic, Version, Salt, Nonce, Filename, Ciphertext, Tag).
-  Future<void> writeEncryptedContainer(String outputPath, EncryptedFile encryptedFile);
+  Future<void> writeEncryptedContainer(
+      String outputPath, EncryptedFile encryptedFile);
+
+  /// Supprime un fichier existant.
+  Future<void> deleteFile(String path);
 
   /// Lit et désérialise un fichier conteneur `.enc`.
   /// Lève [InvalidHeaderException] ou [CorruptedFileException] si le format est invalide.

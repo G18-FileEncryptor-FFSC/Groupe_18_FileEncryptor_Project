@@ -28,16 +28,16 @@ class CliApplication {
     required this.io,
     required this.historyRepository,
     required this.interactiveMode,
-  }) : encryptUseCase = EncryptFileUseCase(
-         cryptoRepository: CryptoRepositoryImpl(),
-         fileRepository: FileRepositoryImpl(),
-         historyRepository: historyRepository,
-       ),
-       decryptUseCase = DecryptFileUseCase(
-         cryptoRepository: CryptoRepositoryImpl(),
-         fileRepository: FileRepositoryImpl(),
-         historyRepository: historyRepository,
-       );
+  })  : encryptUseCase = EncryptFileUseCase(
+          cryptoRepository: CryptoRepositoryImpl(),
+          fileRepository: FileRepositoryImpl(),
+          historyRepository: historyRepository,
+        ),
+        decryptUseCase = DecryptFileUseCase(
+          cryptoRepository: CryptoRepositoryImpl(),
+          fileRepository: FileRepositoryImpl(),
+          historyRepository: historyRepository,
+        );
 
   Future<int> run(List<String> arguments) async {
     if (arguments.isEmpty) {
@@ -293,9 +293,7 @@ class CliApplication {
   }
 
   Future<int> _runHistory(List<String> arguments) async {
-    if (arguments.isEmpty ||
-        arguments.first == '--help' ||
-        arguments.first == '-h') {
+    if (arguments.firstOrNull == '--help' || arguments.firstOrNull == '-h') {
       io.writeln(
         _commandHelp('history', 'Afficher l’historique des opérations'),
       );
@@ -380,9 +378,8 @@ class CliApplication {
   }
 
   void _printProgress(ProcessingProgress progress) {
-    final percentage = (progress.percentage * 100)
-        .clamp(0, 100)
-        .toStringAsFixed(0);
+    final percentage =
+        (progress.percentage * 100).clamp(0, 100).toStringAsFixed(0);
     io.write('\r[$percentage%] ${progress.phase}');
   }
 
