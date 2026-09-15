@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -33,8 +35,8 @@ flutter {
     source = "../.."
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    kotlinOptions {
-        jvmTarget = "17"
+ kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
     }
 }
