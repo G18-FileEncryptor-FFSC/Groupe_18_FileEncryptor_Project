@@ -1,6 +1,5 @@
-// lib/services/decryption_service.dart
-
 import 'dart:io';
+
 import 'package:file_encryptor_core/file_encryptor_core.dart';
 import 'package:mobile/state/decryption_state.dart';
 
@@ -45,10 +44,10 @@ class DecryptionService {
         outputPath: result.outputPath.isEmpty ? null : result.outputPath,
         errorMessage: result.errorMessage,
       );
-    } catch (e) {
+    } catch (error) {
       return DecryptionState(
         status: DecryptionStatus.error,
-        errorMessage: e.toString(),
+        errorMessage: error.toString(),
       );
     }
   }

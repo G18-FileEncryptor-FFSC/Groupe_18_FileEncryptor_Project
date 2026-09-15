@@ -29,9 +29,6 @@ class DecryptionState {
     int? fileSizeBytes,
     String? outputPath,
     String? errorMessage,
-    required String password,
-    required bool clearOutputPath,
-    required bool clearErrorMessage,
   }) {
     return DecryptionState(
       status: status ?? this.status,

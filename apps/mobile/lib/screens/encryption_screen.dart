@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
@@ -28,6 +30,28 @@ class _EncryptionScreenState extends State<EncryptionScreen> {
   void initState() {
     super.initState();
     _service = EncryptionService();
+    _password.addListener(_onPasswordChanged);
+    _confirmation.addListener(_onPasswordChanged);
+  }
+
+  void _onPasswordChanged() => setState(() {});
+
+  int _passwordScore(String password) {
+    var score = 0;
+    if (password.length >= 8) {
+      score++;
+    }
+    if (RegExp(r'[a-z]').hasMatch(password) &&
+        RegExp(r'[A-Z]').hasMatch(password)) {
+      score++;
+    }
+    if (RegExp(r'\d').hasMatch(password)) {
+      score++;
+    }
+    if (RegExp(r'''[!@#\$%^&*(),.?":{}|<>]''').hasMatch(password)) {
+      score++;
+    }
+    return score;
   }
 
   Future<void> _pickFile() async {
@@ -113,6 +137,8 @@ class _EncryptionScreenState extends State<EncryptionScreen> {
 
   @override
   void dispose() {
+    _password.removeListener(_onPasswordChanged);
+    _confirmation.removeListener(_onPasswordChanged);
     _password.dispose();
     _confirmation.dispose();
     super.dispose();
@@ -146,6 +172,7 @@ class _EncryptionScreenState extends State<EncryptionScreen> {
               if (_currentStep == 0)
                 _StepFileSelection(
                   fileName: _fileName,
+                  filePath: _state.selectedFilePath,
                   fileSize: _size(_fileSize),
                   onPick: _pickFile,
                   onClear: _clearFile,
@@ -162,19 +189,27 @@ class _EncryptionScreenState extends State<EncryptionScreen> {
                   deleteOriginal: _deleteOriginal,
                   onDelete: (value) => setState(() => _deleteOriginal = value),
                   onBack: () => setState(() => _currentStep = 0),
-                  onContinue: () {
+                    onContinue: _password.text.isNotEmpty &&
+                        _confirmation.text == _password.text &&
+                        _passwordScore(_password.text) >= 3
+                      ? () {
                     if (_password.text.isEmpty) {
                       return _snack('Mot de passe requis');
                     }
                     if (_password.text != _confirmation.text) {
                       return _snack('Les mots de passe ne correspondent pas');
                     }
+                    if (_passwordScore(_password.text) < 3) {
+                      return _snack('Choisissez un mot de passe plus fort');
+                    }
                     setState(() => _currentStep = 2);
-                  },
+                  }
+                      : null,
                 )
               else
                 _StepSummary(
                   fileName: _fileName ?? 'Fichier sélectionné',
+                  filePath: _state.selectedFilePath,
                   size: _size(_fileSize),
                   error: _state.status == EncryptionStatus.error
                       ? _state.errorMessage
@@ -213,7 +248,7 @@ class _Heading extends StatelessWidget {
               style:
                   const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
-          const Text('Sécurisé par AES-GCM 256 bits côté client',
+            const Text('Protection renforcée, directement sur votre appareil',
               style: TextStyle(color: Colors.blueGrey, fontSize: 13)),
         ])),
       ]);
@@ -262,12 +297,14 @@ class _Stepper extends StatelessWidget {
 
 class _StepFileSelection extends StatelessWidget {
   final String? fileName;
+  final String? filePath;
   final String fileSize;
   final VoidCallback onPick;
   final VoidCallback onClear;
   final VoidCallback? onContinue;
   const _StepFileSelection(
       {required this.fileName,
+      required this.filePath,
       required this.fileSize,
       required this.onPick,
       required this.onClear,
@@ -280,7 +317,8 @@ class _StepFileSelection extends StatelessWidget {
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
       const SizedBox(height: 12),
       selected
-          ? _FileCard(name: fileName!, size: fileSize, onClear: onClear)
+            ? _FileCard(
+              name: fileName!, path: filePath, size: fileSize, onClear: onClear)
           : _DashedCard(
               onTap: onPick,
               child: const Column(children: [
@@ -306,9 +344,13 @@ class _StepFileSelection extends StatelessWidget {
 
 class _FileCard extends StatelessWidget {
   final String name, size;
+  final String? path;
   final VoidCallback onClear;
   const _FileCard(
-      {required this.name, required this.size, required this.onClear});
+      {required this.name,
+      required this.path,
+      required this.size,
+      required this.onClear});
   @override
   Widget build(BuildContext context) => Container(
       clipBehavior: Clip.antiAlias,
@@ -317,7 +359,7 @@ class _FileCard extends StatelessWidget {
         Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 8, 16),
             child: Row(children: [
-              const Icon(Icons.picture_as_pdf, color: Colors.red, size: 38),
+              _FilePreview(path: path, name: name),
               const SizedBox(width: 12),
               Expanded(
                   child: Column(
@@ -342,19 +384,80 @@ class _FileCard extends StatelessWidget {
               Icon(Icons.verified_user_outlined,
                   color: Color(0xFF188038), size: 18),
               SizedBox(width: 8),
-              Expanded(
-                  child: Text('Prêt pour le chiffrement AES-256',
+                Expanded(
+                  child: Text('Prêt pour le chiffrement sécurisé',
                       style: TextStyle(fontSize: 12))),
-              Text('SHA256: 8f3c..b1',
-                  style: TextStyle(color: Colors.blueGrey, fontSize: 11))
             ]))
       ]));
+}
+
+class _FilePreview extends StatelessWidget {
+  final String? path;
+  final String name;
+  const _FilePreview({required this.path, required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    final extension = name.split('.').last.toLowerCase();
+    final isImage = {'png', 'jpg', 'jpeg', 'webp'}.contains(extension);
+    if (isImage && path != null && File(path!).existsSync()) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.file(File(path!),
+            width: 48,
+            height: 48,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => const Icon(Icons.image, size: 38)),
+      );
+    }
+    final icon = extension == 'pdf'
+        ? Icons.picture_as_pdf
+        : {'zip', 'rar', 'tar', '7z'}.contains(extension)
+            ? Icons.folder_zip
+            : {'mp4', 'mkv', 'mov'}.contains(extension)
+                ? Icons.video_file
+                : {'mp3', 'wav'}.contains(extension)
+                    ? Icons.audio_file
+                    : {'txt', 'doc', 'docx'}.contains(extension)
+                        ? Icons.description
+                        : isImage
+                            ? Icons.image
+                            : Icons.insert_drive_file;
+    return Icon(icon,
+        color: extension == 'pdf' ? Colors.red : const Color(0xFF0B57D0),
+        size: 38);
+  }
+}
+
+class _FileSummary extends StatelessWidget {
+  final String? path;
+  final String name;
+  const _FileSummary({required this.path, required this.name});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(children: [
+          _FilePreview(path: path, name: name),
+          const SizedBox(width: 10),
+          const Text('Fichier source',
+              style: TextStyle(color: Colors.blueGrey, fontSize: 13)),
+          const Spacer(),
+          Flexible(
+              child: Text(name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                  style: const TextStyle(fontWeight: FontWeight.bold))),
+        ]),
+      );
 }
 
 class _StepSecurity extends StatelessWidget {
   final TextEditingController password, confirmation;
   final bool visible, deleteOriginal;
-  final VoidCallback onVisibility, onBack, onContinue;
+  final VoidCallback onVisibility, onBack;
+  final VoidCallback? onContinue;
   final ValueChanged<bool> onDelete;
   const _StepSecurity(
       {required this.password,
@@ -372,7 +475,7 @@ class _StepSecurity extends StatelessWidget {
           Text('Mot de passe',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           Spacer(),
-          _Pill('Clé locale AES', Color(0xFF188038))
+          _Pill('Protection locale', Color(0xFF188038))
         ]),
         const SizedBox(height: 12),
         _Input(
@@ -386,13 +489,28 @@ class _StepSecurity extends StatelessWidget {
                     ? Icons.visibility_off_outlined
                     : Icons.visibility_outlined))),
         const SizedBox(height: 10),
-        const _Strength(),
+        _Strength(password.text),
         const SizedBox(height: 18),
-        const Text('Confirmer le mot de passe',
-            style: TextStyle(fontWeight: FontWeight.bold)),
+        AnimatedDefaultTextStyle(
+          duration: const Duration(milliseconds: 180),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: confirmation.text.isNotEmpty &&
+                confirmation.text != password.text
+              ? Colors.red.shade700
+              : null),
+          child: const Text('Confirmer le mot de passe')),
         const SizedBox(height: 8),
-        _Input(confirmation, 'Répétez le mot de passe', Icons.lock_outline,
-            visible, const Icon(Icons.check_circle, color: Color(0xFF188038))),
+        _Input(
+          confirmation,
+          'Répétez le mot de passe',
+          Icons.lock_outline,
+          visible,
+          confirmation.text.isNotEmpty && confirmation.text != password.text
+            ? const Icon(Icons.error_outline, color: Colors.red)
+            : confirmation.text == password.text && confirmation.text.isNotEmpty
+              ? const Icon(Icons.check_circle, color: Color(0xFF188038))
+              : const SizedBox.shrink()),
         const SizedBox(height: 24),
         const Text('Options avancées',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -405,8 +523,8 @@ class _StepSecurity extends StatelessWidget {
                 activeThumbColor: const Color(0xFF188038),
                 onChanged: onDelete)),
         const SizedBox(height: 8),
-        const _Option(Icons.tune, 'Algorithme de chiffrement',
-            _Pill('AES-256-GCM', Color(0xFF0B57D0))),
+        const _Option(Icons.tune, 'Niveau de protection',
+          _Pill('Scellement sécurisé', Color(0xFF0B57D0))),
         const SizedBox(height: 24),
         Row(children: [
           Expanded(
@@ -425,10 +543,12 @@ class _StepSecurity extends StatelessWidget {
 
 class _StepSummary extends StatelessWidget {
   final String fileName, size;
+  final String? filePath;
   final String? error, output;
   final VoidCallback onBack, onEncrypt, onShare;
   const _StepSummary(
       {required this.fileName,
+      required this.filePath,
       required this.size,
       required this.error,
       required this.output,
@@ -454,16 +574,15 @@ class _StepSummary extends StatelessWidget {
         Container(
             decoration: _card(),
             child: Column(children: [
-              _Row(
-                  Icons.insert_drive_file_outlined, 'Fichier source', fileName),
+                _FileSummary(path: filePath, name: fileName),
               _Row(Icons.data_usage_outlined, 'Taille originale', size),
-              const _Row(Icons.security, 'Algorithme', 'AES-256-GCM',
+                const _Row(Icons.security, 'Protection', 'Scellement sécurisé',
                   color: Color(0xFF0B57D0)),
               _Row(Icons.lock_outline, 'Sortie générée', '$fileName.enc',
                   color: Color(0xFF0B57D0)),
-              _Row(Icons.add_chart, 'Taille estimée', '$size + 16B MAC'),
-              const _Row(
-                  Icons.verified_user_outlined, 'Protection', 'Argon2id + AES')
+                _Row(Icons.add_chart, 'Taille estimée', size),
+                const _Row(Icons.verified_user_outlined, 'Coffre',
+                  'Protection renforcée')
             ])),
         if (error != null)
           Padding(
@@ -542,7 +661,7 @@ class _ProcessingView extends StatelessWidget {
           children: [Text('18.2 MB/s'), Text('≈ 00:04')]),
       const SizedBox(height: 18),
       const Row(children: [
-        Expanded(child: _Badge('Vérification SHA-256 HMAC')),
+        Expanded(child: _Badge('Protection vérifiée')),
         SizedBox(width: 8),
         Expanded(child: _Badge('Zéro Fuite Réseau'))
       ]),
@@ -579,22 +698,58 @@ class _Input extends StatelessWidget {
 }
 
 class _Strength extends StatelessWidget {
-  const _Strength();
+  final String password;
+  const _Strength(this.password);
+
+  int get score {
+    var result = 0;
+    if (password.length >= 8) {
+      result++;
+    }
+    if (RegExp(r'[a-z]').hasMatch(password) &&
+        RegExp(r'[A-Z]').hasMatch(password)) {
+      result++;
+    }
+    if (RegExp(r'\d').hasMatch(password)) {
+      result++;
+    }
+    if (RegExp(r'''[!@#\$%^&*(),.?":{}|<>]''').hasMatch(password)) {
+      result++;
+    }
+    return result;
+  }
 
   @override
-  Widget build(BuildContext context) => Column(children: [
+  Widget build(BuildContext context) {
+    final displayedScore = password.isEmpty ? 0 : score;
+    final color = displayedScore <= 1
+        ? Colors.red.shade700
+        : displayedScore == 2
+            ? Colors.orange.shade700
+            : displayedScore == 3
+                ? const Color(0xFF4285F4)
+                : const Color(0xFF188038);
+    final label = password.isEmpty || displayedScore <= 1
+        ? (password.isEmpty ? 'TRÈS FAIBLE' : 'FAIBLE')
+        : displayedScore == 2
+            ? 'MOYEN'
+            : displayedScore == 3
+                ? 'BON'
+                : 'FORTE';
+    return Column(children: [
         Row(children: [
           ...List.generate(
               4,
-              (_) => Expanded(
+              (index) => Expanded(
                     child: Container(
                         height: 5,
                         margin: const EdgeInsets.only(right: 4),
-                        color: const Color(0xFF188038)),
+                        color: index < displayedScore
+                          ? color
+                          : Colors.grey.shade300),
                   )),
-          const Text('FORTE',
-              style: TextStyle(
-                  color: Color(0xFF188038), fontWeight: FontWeight.bold)),
+                  Text(label,
+                    style: TextStyle(color: color, fontWeight: FontWeight.bold)),
         ]),
         const SizedBox(height: 8),
         const Align(
@@ -602,7 +757,8 @@ class _Strength extends StatelessWidget {
             child: Text(
                 'Votre clé reste locale et ne quitte jamais l’appareil.',
                 style: TextStyle(color: Colors.blueGrey, fontSize: 12))),
-      ]);
+        ]);
+      }
 }
 
 class _Option extends StatelessWidget {
