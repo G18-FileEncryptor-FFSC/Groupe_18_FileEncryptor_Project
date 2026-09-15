@@ -37,7 +37,7 @@ void main() {
         // Un fichier de sortie doit être retourné. (modifie)
         expect(result.outputPath, isNotNull);
 
-        final encryptedFile = File(result.outputPath!);
+        final encryptedFile = File(result.outputPath);
 
         // Le fichier chiffré doit exister.
         expect(await encryptedFile.exists(), isTrue);

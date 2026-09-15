@@ -1,28 +1,54 @@
+import 'dart:io';
+
 import 'package:file_encryptor_core/file_encryptor_core.dart';
+import 'package:mobile/state/decryption_state.dart';
 
 class DecryptionService {
-  final DecryptFileUseCase _decryptUseCase;
+  final DecryptFileUseCase _decryptFileUseCase;
 
-  DecryptionService({DecryptFileUseCase? decryptUseCase})
-    : _decryptUseCase =
-          decryptUseCase ??
-          DecryptFileUseCase(
-            cryptoRepository: CryptoRepositoryImpl(),
-            fileRepository: FileRepositoryImpl(),
-            historyRepository: HistoryRepositoryImpl(),
-          );
+  DecryptionService({DecryptFileUseCase? decryptFileUseCase})
+      : _decryptFileUseCase = decryptFileUseCase ??
+            DecryptFileUseCase(
+              cryptoRepository: CryptoRepositoryImpl(),
+              fileRepository: FileRepositoryImpl(),
+              historyRepository: HistoryRepositoryImpl(),
+            );
 
-  Future<EncryptionResult> decrypt({
-    required String filePath,
+  Future<DecryptionState> decrypt({
+    required String inputPath,
     required String password,
-    required void Function(double progress) onProgress,
+    String? outputDirectory,
   }) async {
-    return await _decryptUseCase(
-      inputPath: filePath,
-      password: password,
-      onProgress: (progressData) {
-        onProgress(progressData.percentage);
-      },
-    );
+    try {
+      final file = File(inputPath);
+      if (!await file.exists()) {
+        return const DecryptionState(
+          status: DecryptionStatus.error,
+          errorMessage: 'Fichier introuvable.',
+        );
+      }
+
+      final result = await _decryptFileUseCase(
+        inputPath: inputPath,
+        password: password,
+        outputDirectoryOrPath: outputDirectory,
+      );
+
+      return DecryptionState(
+        status: result.isSuccess
+            ? DecryptionStatus.success
+            : DecryptionStatus.error,
+        selectedFilePath: inputPath,
+        fileName: result.originalFileName,
+        fileSizeBytes: result.fileSizeBytes,
+        outputPath: result.outputPath.isEmpty ? null : result.outputPath,
+        errorMessage: result.errorMessage,
+      );
+    } catch (error) {
+      return DecryptionState(
+        status: DecryptionStatus.error,
+        errorMessage: error.toString(),
+      );
+    }
   }
 }

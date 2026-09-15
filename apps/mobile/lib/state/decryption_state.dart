@@ -1,31 +1,40 @@
-enum DecryptionStatus { idle, loading, success, error }
+enum DecryptionStatus { initial, loading, success, error }
 
 class DecryptionState {
   final DecryptionStatus status;
   final String? selectedFilePath;
-  final double progress;
+  final String? fileName;
+  final int? fileSizeBytes;
   final String? outputPath;
   final String? errorMessage;
 
   const DecryptionState({
-    this.status = DecryptionStatus.idle,
+    this.status = DecryptionStatus.initial,
     this.selectedFilePath,
-    this.progress = 0.0,
+    this.fileName,
+    this.fileSizeBytes,
     this.outputPath,
     this.errorMessage,
   });
 
+  bool get isInitial => status == DecryptionStatus.initial;
+  bool get isLoading => status == DecryptionStatus.loading;
+  bool get isSuccess => status == DecryptionStatus.success;
+  bool get isError => status == DecryptionStatus.error;
+
   DecryptionState copyWith({
     DecryptionStatus? status,
     String? selectedFilePath,
-    double? progress,
+    String? fileName,
+    int? fileSizeBytes,
     String? outputPath,
     String? errorMessage,
   }) {
     return DecryptionState(
       status: status ?? this.status,
       selectedFilePath: selectedFilePath ?? this.selectedFilePath,
-      progress: progress ?? this.progress,
+      fileName: fileName ?? this.fileName,
+      fileSizeBytes: fileSizeBytes ?? this.fileSizeBytes,
       outputPath: outputPath ?? this.outputPath,
       errorMessage: errorMessage ?? this.errorMessage,
     );

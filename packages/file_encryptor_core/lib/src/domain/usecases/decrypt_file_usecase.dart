@@ -60,7 +60,8 @@ class DecryptFileUseCase {
       ));
 
       // 2. Lecture et désérialisation du conteneur (vérifie Magic Bytes, Version, Longueur)
-      final encryptedFile = await fileRepository.readEncryptedContainer(inputPath);
+      final encryptedFile =
+          await fileRepository.readEncryptedContainer(inputPath);
       originalFileName = encryptedFile.originalFileName;
 
       // Détermination du chemin de sortie
@@ -150,7 +151,8 @@ class DecryptFileUseCase {
         operation: CryptoOperationType.decrypt,
         fileName: originalFileName ?? p.basename(inputPath),
         sourcePath: inputPath,
-        destinationPath: targetOutputPath.isNotEmpty ? targetOutputPath : inputPath,
+        destinationPath:
+            targetOutputPath.isNotEmpty ? targetOutputPath : inputPath,
         fileSizeBytes: encryptedFileSize,
         isSuccess: false,
         errorMessage: e.toString(),
@@ -189,7 +191,8 @@ class DecryptFileUseCase {
     if (entityType == FileSystemEntityType.directory ||
         outputDirectoryOrPath.endsWith(p.separator) ||
         outputDirectoryOrPath.endsWith('/')) {
-      final name = originalFileName.isNotEmpty ? originalFileName : 'decrypted_file';
+      final name =
+          originalFileName.isNotEmpty ? originalFileName : 'decrypted_file';
       return p.join(outputDirectoryOrPath, name);
     }
 
@@ -223,4 +226,5 @@ class DecryptFileUseCase {
       // Ignorer les erreurs d'historique pour ne pas altérer le flux principal
     }
   }
+
 }

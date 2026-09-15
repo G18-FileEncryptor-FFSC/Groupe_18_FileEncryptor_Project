@@ -520,7 +520,7 @@ class _StepSecurity extends StatelessWidget {
             'Supprimer le fichier original',
             Switch(
                 value: deleteOriginal,
-                activeColor: const Color(0xFF188038),
+                activeThumbColor: const Color(0xFF188038),
                 onChanged: onDelete)),
         const SizedBox(height: 8),
         const _Option(Icons.tune, 'Niveau de protection',
