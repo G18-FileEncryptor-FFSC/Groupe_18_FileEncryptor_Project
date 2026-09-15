@@ -58,6 +58,42 @@ Le projet est actuellement en cours de développement.
 
 L'application mobile Flutter constitue la première interface développée. La CLI Dart sera intégrée progressivement après la mise en place du cœur fonctionnel.
 
+### 2. Lancer la CLI
+Sans argument, la CLI affiche un menu interactif :
+
+```bash
+cd apps/cli
+dart run bin/main.dart
+```
+
+Menu proposé :
+
+```text
+FileEncryptor
+Que souhaitez-vous faire ?
+
+1) Chiffrer un fichier
+2) Déchiffrer un fichier
+3) Voir l’historique
+4) Quitter
+```
+
+Vous pouvez aussi utiliser les commandes directement :
+
+```bash
+dart run bin/main.dart --help
+dart run bin/main.dart encrypt ./mon_fichier.txt --password "secret123"
+dart run bin/main.dart decrypt ./mon_fichier.txt.enc --password "secret123"
+dart run bin/main.dart history
+```
+
+Le mot de passe est saisi masqué lors des interactions terminal.
+
+### 3. Lancer l'Application Mobile
+```bash
+cd apps/mobile
+flutter run
+```
 ## Documentation
 
 La documentation du projet est disponible dans le dossier `docs/`.

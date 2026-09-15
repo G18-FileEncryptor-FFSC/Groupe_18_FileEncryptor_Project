@@ -1,4 +1,10 @@
-/// Point d'entrée de la CLI FileEncryptor.
-void main(List<String> arguments) {
-  // TODO: Initialiser le CommandRunner et enregistrer les commandes encrypt et decrypt.
+import 'dart:io';
+
+import 'package:cli/cli.dart';
+
+Future<void> main(List<String> arguments) async {
+  final code = await CliApplication(interactiveMode: true).run(arguments);
+  if (code != 0) {
+    exit(code);
+  }
 }
