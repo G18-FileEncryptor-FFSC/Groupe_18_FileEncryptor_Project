@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'screens/encryption_screen.dart';
 
