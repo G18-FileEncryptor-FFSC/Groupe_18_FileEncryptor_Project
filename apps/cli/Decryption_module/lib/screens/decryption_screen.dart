@@ -43,16 +43,15 @@ class _DecryptionScreenState extends State<DecryptionScreen> {
   }
 
   Future<void> _pickFile() async {
-    final result = await FilePicker.platform.pickFiles(
+    final pickedFile = await FilePicker.pickFile(
       type: FileType.any,
-      allowMultiple: false,
     );
 
-    if (result != null && result.files.single.path != null) {
-      final path = result.files.single.path!;
+    if (pickedFile != null && pickedFile.path != null) {
+      final path = pickedFile.path!;
       final file = File(path);
       final size = await file.length();
-      final name = result.files.single.name;
+      final name = pickedFile.name;
 
       setState(() {
         _state = _state.copyWith(

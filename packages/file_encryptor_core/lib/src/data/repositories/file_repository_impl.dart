@@ -32,7 +32,13 @@ class FileRepositoryImpl implements FileRepository {
   }
 
   @override
-  Future<void> writeEncryptedContainer(String outputPath, EncryptedFile encryptedFile) {
+  Future<void> deleteFile(String path) {
+    return _fileService.deleteFile(path);
+  }
+
+  @override
+  Future<void> writeEncryptedContainer(
+      String outputPath, EncryptedFile encryptedFile) {
     return _fileService.writeEncryptedContainer(outputPath, encryptedFile);
   }
 
