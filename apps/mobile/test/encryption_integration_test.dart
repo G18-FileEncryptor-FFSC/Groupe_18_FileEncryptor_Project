@@ -53,7 +53,7 @@ void main() {
         );
 
         // Le contenu chiffré doit être différent du fichier original.
-        final originalBytes = await sourceFile.readAsBytes();
+        final originalBytes = originalContent.codeUnits;
 
         expect(
           encryptedBytes,

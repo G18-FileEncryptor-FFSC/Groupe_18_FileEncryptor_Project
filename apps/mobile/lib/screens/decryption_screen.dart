@@ -32,10 +32,11 @@ class _DecryptionScreenState extends State<DecryptionScreen> {
   void _onPasswordChanged() => setState(() {});
 
   Future<void> _pickFile() async {
-    final file = await FilePicker.pickFile(
+    final result = await FilePickerPlatform.instance.pickFiles(
       type: FileType.any,
     );
-    if (file == null) return;
+    if (result.isEmpty) return;
+    final file = result.first;
     final path = file.path;
     if (path == null || !mounted) return;
 
@@ -147,7 +148,7 @@ class _DecryptionScreenState extends State<DecryptionScreen> {
                   ),
                 ),
                 Text(
-                  'Accueil',
+                  'Déchiffrement',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
