@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/encryption_screen.dart';
+import 'features/home/presentation/pages/home_page.dart';
 
 class FileEncryptorApp extends StatelessWidget {
   const FileEncryptorApp({super.key});
@@ -10,10 +10,15 @@ class FileEncryptorApp extends StatelessWidget {
       title: 'File Encryptor',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF2563EB),
+          primary: const Color(0xFF2563EB),
+        ),
+        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
         useMaterial3: true,
+        fontFamily: 'Roboto',
       ),
-      home: const EncryptionScreen(),
+      home: const MainNavigationWrapper(),
     );
   }
 }

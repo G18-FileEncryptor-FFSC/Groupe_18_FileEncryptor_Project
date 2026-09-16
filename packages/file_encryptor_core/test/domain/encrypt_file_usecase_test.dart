@@ -17,7 +17,8 @@ void main() {
       fileRepository = FileRepositoryImpl();
       historyRepository = HistoryRepositoryImpl(
         dataSource: HistoryLocalDataSource(
-          customStoragePath: '${tempDir.path}${Platform.pathSeparator}history.json',
+          customStoragePath:
+              '${tempDir.path}${Platform.pathSeparator}history.json',
         ),
       );
 
@@ -36,8 +37,10 @@ void main() {
 
     test('encrypts a valid file successfully and notifies progress', () async {
       final inputPath = '${tempDir.path}${Platform.pathSeparator}sample.txt';
-      final outputPath = '${tempDir.path}${Platform.pathSeparator}sample.txt.enc';
-      await File(inputPath).writeAsString('Secret clear text data for unit test.');
+      final outputPath =
+          '${tempDir.path}${Platform.pathSeparator}sample.txt.enc';
+      await File(inputPath)
+          .writeAsString('Secret clear text data for unit test.');
 
       final progressSteps = <ProcessingProgress>[];
 
@@ -52,6 +55,7 @@ void main() {
       expect(result.outputPath, equals(outputPath));
       expect(result.originalFileName, equals('sample.txt'));
       expect(await File(outputPath).exists(), isTrue);
+      expect(await File(inputPath).exists(), isFalse);
       expect(progressSteps, isNotEmpty);
       expect(progressSteps.last.percentage, equals(1.0));
 
@@ -63,7 +67,8 @@ void main() {
     });
 
     test('fails gracefully when input file does not exist', () async {
-      final nonExistentPath = '${tempDir.path}${Platform.pathSeparator}unknown.txt';
+      final nonExistentPath =
+          '${tempDir.path}${Platform.pathSeparator}unknown.txt';
 
       final result = await useCase(
         inputPath: nonExistentPath,
@@ -79,7 +84,8 @@ void main() {
     });
 
     test('rethrows exception when rethrowOnError is true', () async {
-      final nonExistentPath = '${tempDir.path}${Platform.pathSeparator}unknown.txt';
+      final nonExistentPath =
+          '${tempDir.path}${Platform.pathSeparator}unknown.txt';
 
       expect(
         () => useCase(
