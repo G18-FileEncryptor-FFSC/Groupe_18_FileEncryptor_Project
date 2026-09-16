@@ -55,14 +55,15 @@ class _EncryptionScreenState extends State<EncryptionScreen> {
   }
 
   Future<void> _pickFile() async {
-    final result = await FilePicker.platform.pickFiles();
-    if (!mounted || result == null || result.files.single.path == null) return;
-    final file = result.files.single;
+    final file = await FilePicker.pickFile();
+    if (!mounted || file == null || file.path == null) return;
+    final path = file.path!;
+    final size = await File(path).length();
     setState(() {
       _fileName = file.name;
-      _fileSize = file.size;
+      _fileSize = size;
       _state = _state.copyWith(
-          selectedFilePath: file.path,
+          selectedFilePath: path,
           status: EncryptionStatus.idle,
           errorMessage: null);
     });
@@ -132,7 +133,9 @@ class _EncryptionScreenState extends State<EncryptionScreen> {
 
   Future<void> _share() async {
     final path = _state.outputPath;
-    if (path != null && path.isNotEmpty) await Share.shareXFiles([XFile(path)]);
+    if (path != null && path.isNotEmpty) {
+      await SharePlus.instance.share(ShareParams(files: [XFile(path)]));
+    }
   }
 
   @override

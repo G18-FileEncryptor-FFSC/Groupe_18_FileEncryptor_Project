@@ -10,27 +10,22 @@ import '../states/decryption_state.dart';
 class DecryptionController extends ChangeNotifier {
   DecryptionController({
     DecryptFileUseCase? decryptFileUseCase,
-    FilePicker? filePicker,
   })  : _decryptFileUseCase = decryptFileUseCase ??
             DecryptFileUseCase(
               cryptoRepository: CryptoRepositoryImpl(),
               fileRepository: FileRepositoryImpl(),
               historyRepository: HistoryRepositoryImpl(),
-            ),
-        _filePicker = filePicker ?? FilePicker.platform;
+            );
 
   final DecryptFileUseCase _decryptFileUseCase;
-  final FilePicker _filePicker;
   DecryptionState _state = const DecryptionState();
 
   DecryptionState get state => _state;
 
   Future<void> pickEncryptedFile() async {
-    final selection = await _filePicker.pickFiles(
+    final file = await FilePicker.pickFile(
       type: FileType.any,
-      allowMultiple: false,
     );
-    final file = selection?.files.singleOrNull;
     final path = file?.path;
     if (path == null || path.isEmpty) return;
 
