@@ -123,7 +123,13 @@ class EncryptFileUseCase {
         authTag: encryptedPayload.authTag,
       );
 
-      await fileRepository.writeEncryptedContainer(targetOutputPath, encryptedFile);
+      await fileRepository.writeEncryptedContainer(
+          targetOutputPath, encryptedFile);
+      final normalizedInputPath = p.normalize(p.absolute(inputPath));
+      final normalizedOutputPath = p.normalize(p.absolute(targetOutputPath));
+      if (normalizedInputPath != normalizedOutputPath) {
+        await fileRepository.deleteFile(inputPath);
+      }
 
       stopwatch.stop();
 

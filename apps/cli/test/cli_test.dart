@@ -47,7 +47,9 @@ void main() {
     expect(joined, contains('history'));
   });
 
-  test('affiche le menu de sélection si aucun argument n’est fourni en mode non interactif', () async {
+  test(
+      'affiche le menu de sélection si aucun argument n’est fourni en mode non interactif',
+      () async {
     final io = BufferIo();
     final code = await CliApplication(io: io).run([]);
 
@@ -100,6 +102,34 @@ void main() {
     expect(code, 0);
     expect(history.items, isEmpty);
     expect(io.output.join('\n'), contains('Historique effacé'));
+  });
+
+  test('history affiche les opérations enregistrées', () async {
+    final history = FakeHistoryRepository();
+    history.items.add(
+      HistoryItem(
+        id: '1',
+        operation: CryptoOperationType.encrypt,
+        fileName: 'document.txt',
+        sourcePath: 'document.txt',
+        destinationPath: 'document.txt.enc',
+        timestamp: DateTime(2026),
+        fileSizeBytes: 42,
+        isSuccess: true,
+      ),
+    );
+    final io = BufferIo();
+
+    final code = await CliApplication(
+      io: io,
+      historyRepository: history,
+    ).run(['history']);
+
+    expect(code, 0);
+    final output = io.output.join('\n');
+    expect(output, contains('Historique (1 opération(s))'));
+    expect(output, contains('ENCRYPT'));
+    expect(output, contains('document.txt'));
   });
 
   test('round trip encrypt/decrypt avec un fichier temporaire', () async {

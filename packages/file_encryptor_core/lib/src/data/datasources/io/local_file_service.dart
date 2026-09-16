@@ -58,6 +58,14 @@ class LocalFileService {
     await file.writeAsBytes(bytes, flush: true);
   }
 
+  /// Supprime un fichier existant.
+  Future<void> deleteFile(String path) async {
+    final file = File(path);
+    if (await file.exists()) {
+      await file.delete();
+    }
+  }
+
   /// Calcule l'en-tête binaire pour un fichier (servant aussi d'Associated Authenticated Data - AAD).
   Uint8List computeHeaderBytes({
     required String originalFileName,
@@ -68,7 +76,8 @@ class LocalFileService {
       throw ArgumentError('Le sel doit faire exactement $saltLength octets.');
     }
     if (nonce.length != nonceLength) {
-      throw ArgumentError('Le nonce doit faire exactement $nonceLength octets.');
+      throw ArgumentError(
+          'Le nonce doit faire exactement $nonceLength octets.');
     }
 
     final nameBytes = utf8.encode(originalFileName);
@@ -89,7 +98,8 @@ class LocalFileService {
   /// Sérialise une entité [EncryptedFile] en flux binaire selon la spécification `.enc`.
   Uint8List serializeEncryptedFile(EncryptedFile encryptedFile) {
     if (encryptedFile.authTag.length != authTagLength) {
-      throw ArgumentError('Le tag d\'authentification doit faire exactement $authTagLength octets.');
+      throw ArgumentError(
+          'Le tag d\'authentification doit faire exactement $authTagLength octets.');
     }
 
     final header = computeHeaderBytes(
@@ -110,7 +120,8 @@ class LocalFileService {
   EncryptedFile deserializeEncryptedFile(Uint8List bytes) {
     // Taille minimale : HeaderPrefix (50) + Nom (0) + Payload (0) + Tag (16) = 66 octets
     if (bytes.length < headerPrefixLength + authTagLength) {
-      throw const CorruptedFileException('Fichier trop court pour constituer un conteneur valide.');
+      throw const CorruptedFileException(
+          'Fichier trop court pour constituer un conteneur valide.');
     }
 
     // 1. Vérification Magic Bytes
@@ -141,7 +152,8 @@ class LocalFileService {
 
     final headerTotalLength = headerPrefixLength + nameLength;
     if (bytes.length < headerTotalLength + authTagLength) {
-      throw const CorruptedFileException('Conteneur tronqué : taille inférieure aux en-têtes déclarés.');
+      throw const CorruptedFileException(
+          'Conteneur tronqué : taille inférieure aux en-têtes déclarés.');
     }
 
     // 6. Nom original
@@ -150,8 +162,10 @@ class LocalFileService {
 
     // 7. Payload chiffré et 8. Tag d'authentification
     final ciphertextEnd = bytes.length - authTagLength;
-    final ciphertext = Uint8List.fromList(bytes.sublist(headerTotalLength, ciphertextEnd));
-    final authTag = Uint8List.fromList(bytes.sublist(ciphertextEnd, bytes.length));
+    final ciphertext =
+        Uint8List.fromList(bytes.sublist(headerTotalLength, ciphertextEnd));
+    final authTag =
+        Uint8List.fromList(bytes.sublist(ciphertextEnd, bytes.length));
 
     return EncryptedFile(
       originalFileName: originalFileName,
@@ -163,7 +177,8 @@ class LocalFileService {
   }
 
   /// Écrit un conteneur chiffré dans le fichier cible.
-  Future<void> writeEncryptedContainer(String outputPath, EncryptedFile encryptedFile) async {
+  Future<void> writeEncryptedContainer(
+      String outputPath, EncryptedFile encryptedFile) async {
     final serialized = serializeEncryptedFile(encryptedFile);
     await writeFileBytes(outputPath, serialized);
   }
