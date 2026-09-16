@@ -36,28 +36,24 @@ class _EncryptionScreenState extends State<EncryptionScreen> {
 
   void _onPasswordChanged() => setState(() {});
 
-  int _passwordScore(String password) {
-    var score = 0;
-    if (password.length >= 8) {
-      score++;
+  bool _isPasswordValid(String password) {
+    if (password.length < 8) return false;
+    if (!RegExp(r'\d').hasMatch(password)) return false;
+    if (!RegExp(r'[A-Z]').hasMatch(password)) return false;
+    if (!RegExp(r'[a-z]').hasMatch(password)) return false;
+    if (!RegExp(r'''[!@#\$%^&*(),.?":{}|<>_\-+=\[\]\\\/~`';]''').hasMatch(password) &&
+        !RegExp(r'[^a-zA-Z0-9]').hasMatch(password)) {
+      return false;
     }
-    if (RegExp(r'[a-z]').hasMatch(password) &&
-        RegExp(r'[A-Z]').hasMatch(password)) {
-      score++;
-    }
-    if (RegExp(r'\d').hasMatch(password)) {
-      score++;
-    }
-    if (RegExp(r'''[!@#\$%^&*(),.?":{}|<>]''').hasMatch(password)) {
-      score++;
-    }
-    return score;
+    return true;
   }
 
   Future<void> _pickFile() async {
-    final file = await FilePicker.pickFile();
-    if (!mounted || file == null || file.path == null) return;
-    final path = file.path!;
+    final result = await FilePickerPlatform.instance.pickFiles();
+    if (!mounted || result.isEmpty) return;
+    final file = result.first;
+    final path = file.path;
+    if (path == null) return;
     final size = await File(path).length();
     setState(() {
       _fileName = file.name;
@@ -192,21 +188,23 @@ class _EncryptionScreenState extends State<EncryptionScreen> {
                   deleteOriginal: _deleteOriginal,
                   onDelete: (value) => setState(() => _deleteOriginal = value),
                   onBack: () => setState(() => _currentStep = 0),
-                    onContinue: _password.text.isNotEmpty &&
-                        _confirmation.text == _password.text &&
-                        _passwordScore(_password.text) >= 3
+                  onContinue: _isPasswordValid(_password.text) &&
+                          _confirmation.text == _password.text &&
+                          _confirmation.text.isNotEmpty
                       ? () {
-                    if (_password.text.isEmpty) {
-                      return _snack('Mot de passe requis');
-                    }
-                    if (_password.text != _confirmation.text) {
-                      return _snack('Les mots de passe ne correspondent pas');
-                    }
-                    if (_passwordScore(_password.text) < 3) {
-                      return _snack('Choisissez un mot de passe plus fort');
-                    }
-                    setState(() => _currentStep = 2);
-                  }
+                          if (_password.text.isEmpty) {
+                            return _snack('Mot de passe requis');
+                          }
+                          if (!_isPasswordValid(_password.text)) {
+                            return _snack(
+                                'Le mot de passe ne respecte pas tous les critères');
+                          }
+                          if (_password.text != _confirmation.text) {
+                            return _snack(
+                                'Les mots de passe ne correspondent pas');
+                          }
+                          setState(() => _currentStep = 2);
+                        }
                       : null,
                 )
               else
@@ -493,6 +491,8 @@ class _StepSecurity extends StatelessWidget {
                     : Icons.visibility_outlined))),
         const SizedBox(height: 10),
         _Strength(password.text),
+        const SizedBox(height: 14),
+        _PasswordCriteriaList(password: password.text),
         const SizedBox(height: 18),
         AnimatedDefaultTextStyle(
           duration: const Duration(milliseconds: 180),
@@ -709,14 +709,17 @@ class _Strength extends StatelessWidget {
     if (password.length >= 8) {
       result++;
     }
-    if (RegExp(r'[a-z]').hasMatch(password) &&
-        RegExp(r'[A-Z]').hasMatch(password)) {
-      result++;
-    }
     if (RegExp(r'\d').hasMatch(password)) {
       result++;
     }
-    if (RegExp(r'''[!@#\$%^&*(),.?":{}|<>]''').hasMatch(password)) {
+    if (RegExp(r'[A-Z]').hasMatch(password)) {
+      result++;
+    }
+    if (RegExp(r'[a-z]').hasMatch(password)) {
+      result++;
+    }
+    if (RegExp(r'''[!@#\$%^&*(),.?":{}|<>_\-+=\[\]\\\/~`';]''').hasMatch(password) ||
+        RegExp(r'[^a-zA-Z0-9]').hasMatch(password)) {
       result++;
     }
     return result;
@@ -730,19 +733,25 @@ class _Strength extends StatelessWidget {
         : displayedScore == 2
             ? Colors.orange.shade700
             : displayedScore == 3
-                ? const Color(0xFF4285F4)
-                : const Color(0xFF188038);
-    final label = password.isEmpty || displayedScore <= 1
-        ? (password.isEmpty ? 'TRÈS FAIBLE' : 'FAIBLE')
-        : displayedScore == 2
-            ? 'MOYEN'
-            : displayedScore == 3
-                ? 'BON'
-                : 'FORTE';
+                ? const Color(0xFFD97706)
+                : displayedScore == 4
+                    ? const Color(0xFF2563EB)
+                    : const Color(0xFF16A34A);
+    final label = password.isEmpty
+        ? 'REQUIS'
+        : displayedScore <= 1
+            ? 'TRÈS FAIBLE'
+            : displayedScore == 2
+                ? 'FAIBLE'
+                : displayedScore == 3
+                    ? 'MOYEN'
+                    : displayedScore == 4
+                        ? 'BON'
+                        : 'PARFAIT';
     return Column(children: [
         Row(children: [
           ...List.generate(
-              4,
+              5,
               (index) => Expanded(
                     child: Container(
                         height: 5,
@@ -762,6 +771,131 @@ class _Strength extends StatelessWidget {
                 style: TextStyle(color: Colors.blueGrey, fontSize: 12))),
         ]);
       }
+}
+
+class _PasswordCriteriaList extends StatelessWidget {
+  final String password;
+  const _PasswordCriteriaList({required this.password});
+
+  bool get hasMinLength => password.length >= 8;
+  bool get hasDigit => RegExp(r'\d').hasMatch(password);
+  bool get hasUppercase => RegExp(r'[A-Z]').hasMatch(password);
+  bool get hasLowercase => RegExp(r'[a-z]').hasMatch(password);
+  bool get hasSpecialChar =>
+      RegExp(r'''[!@#\$%^&*(),.?":{}|<>_\-+=\[\]\\\/~`';]''').hasMatch(password) ||
+      RegExp(r'[^a-zA-Z0-9]').hasMatch(password);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: const [
+              Icon(
+                Icons.security_outlined,
+                size: 16,
+                color: Color(0xFF64748B),
+              ),
+              SizedBox(width: 6),
+              Text(
+                'Critères requis pour le mot de passe :',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF475569),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          _PasswordCriterionItem(
+            label: 'Minimum 8 caractères',
+            isValid: hasMinLength,
+          ),
+          const SizedBox(height: 6),
+          _PasswordCriterionItem(
+            label: 'Au moins 1 Chiffre',
+            isValid: hasDigit,
+          ),
+          const SizedBox(height: 6),
+          _PasswordCriterionItem(
+            label: 'Au moins 1 Majuscule',
+            isValid: hasUppercase,
+          ),
+          const SizedBox(height: 6),
+          _PasswordCriterionItem(
+            label: 'Au moins 1 Minuscule',
+            isValid: hasLowercase,
+          ),
+          const SizedBox(height: 6),
+          _PasswordCriterionItem(
+            label: 'Au moins 1 Caractère spécial',
+            isValid: hasSpecialChar,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PasswordCriterionItem extends StatelessWidget {
+  final String label;
+  final bool isValid;
+
+  const _PasswordCriterionItem({
+    required this.label,
+    required this.isValid,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const activeColor = Color(0xFF16A34A);
+    const inactiveColor = Color(0xFF94A3B8);
+
+    return Row(
+      children: [
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: 18,
+          height: 18,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isValid
+                ? activeColor.withValues(alpha: 0.15)
+                : Colors.white,
+            border: Border.all(
+              color: isValid ? activeColor : inactiveColor.withValues(alpha: 0.6),
+              width: 1.5,
+            ),
+          ),
+          child: Icon(
+            isValid ? Icons.check : Icons.circle,
+            size: isValid ? 12 : 5,
+            color: isValid ? activeColor : inactiveColor.withValues(alpha: 0.4),
+          ),
+        ),
+        const SizedBox(width: 8),
+        AnimatedDefaultTextStyle(
+          duration: const Duration(milliseconds: 200),
+          style: TextStyle(
+            fontSize: 12,
+            fontFamily: 'Roboto',
+            fontWeight: isValid ? FontWeight.w600 : FontWeight.normal,
+            color: isValid ? const Color(0xFF15803D) : const Color(0xFF64748B),
+          ),
+          child: Text(label),
+        ),
+      ],
+    );
+  }
 }
 
 class _Option extends StatelessWidget {

@@ -35,14 +35,8 @@ flutter {
     source = "../.."
 }
 
-<<<<<<< HEAD
 kotlin {
     compilerOptions {
-        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
-=======
- kotlin {
-    compilerOptions {
         jvmTarget = JvmTarget.JVM_17
->>>>>>> 2c97d1e8bf6625159907dbe0dde2c4e8a8b2d823
     }
 }

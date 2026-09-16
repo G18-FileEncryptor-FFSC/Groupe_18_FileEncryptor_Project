@@ -23,10 +23,12 @@ class DecryptionController extends ChangeNotifier {
   DecryptionState get state => _state;
 
   Future<void> pickEncryptedFile() async {
-    final file = await FilePicker.pickFile(
+    final result = await FilePickerPlatform.instance.pickFiles(
       type: FileType.any,
     );
-    final path = file?.path;
+    if (result.isEmpty) return;
+    final file = result.first;
+    final path = file.path;
     if (path == null || path.isEmpty) return;
 
     try {
@@ -34,7 +36,7 @@ class DecryptionController extends ChangeNotifier {
       _state = _state.copyWith(
         currentStep: 0,
         inputPath: path,
-        fileName: file!.name,
+        fileName: file.name,
         encryptedFileSizeBytes: size,
         status: DecryptionStatus.idle,
         clearOutputPath: true,
